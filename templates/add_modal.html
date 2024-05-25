@@ -1,0 +1,45 @@
+<div class="modal fade" data-bs-keyboard="false" id="addRecordModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить новую запись</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addRecordForm" action="/add_to_bd" method="post">
+                    <div class="mb-3">
+                        <label for="recordTitle" class="form-label">Название</label>
+                        <input type="text" class="form-control" id="recordTitle" name="recordTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recordType" class="form-label">Тип</label>
+                        <select class="form-select" id="recordType" name="recordType" required>
+                            <option value="event">Ивент</option>
+                            <option value="task">Таск</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recordDate" class="form-label">Дата окончания</label>
+                        <input type="date" class="form-control" id="recordDate" name="recordDate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="recordDescription" class="form-label">Описание</label>
+                        <textarea class="form-control" id="recordDescription" name="recordDescription" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recordPriority" class="form-label">Приоритет</label>
+                        <select class="form-select" id="recordPriority" name="recordPriority" required>
+                            <option value="1">Низкий</option>
+                            <option value="2">Средний</option>
+                            <option value="3">Высокий</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="submit" form="addRecordForm" class="btn btn-primary">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>

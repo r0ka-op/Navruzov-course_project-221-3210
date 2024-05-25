@@ -1,0 +1,42 @@
+
+<div class="modal fade" id="viewRecordModal" tabindex="-1" aria-labelledby="viewRecordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewRecordModalLabel">Просмотр записи</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="viewRecordForm">
+                    <div class="mb-3">
+                        <label for="viewRecordTitle" class="form-label">Название</label>
+                        <input type="text" class="form-control" id="viewRecordTitle" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="viewRecordDescription" class="form-label">Описание</label>
+                        <textarea class="form-control" id="viewRecordDescription" rows="3" readonly></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="viewRecordDate" class="form-label">Дата</label>
+                        <input type="text" class="form-control" id="viewRecordDate" readonly>
+                    </div>
+                    <div class="mb-3" id="viewRecordPriorityContainer" style="display: none;">
+                        <label for="viewRecordPriority" class="form-label">Приоритет</label>
+                        <input type="text" class="form-control" id="viewRecordPriority" readonly>
+                    </div>
+                    <div class="mb-3" id="viewRecordStatusContainer" style="display: none;">
+                        <label for="viewRecordStatus" class="form-label">Статус</label>
+                        <input type="text" class="form-control" id="viewRecordStatus" readonly>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" id="view_edit_footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+
+                <button type="button" class="btn btn-primary" id="editRecordBtn" data-record-id="id" data-record-type="type">Изменить</button>
+                <button type="button" class="btn btn-danger" id="deleteRecordBtn" data-record-id="id" data-record-type="type">Удалить</button>
+
+            </div>
+        </div>
+    </div>
+</div>
