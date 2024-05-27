@@ -261,3 +261,34 @@ document.getElementById('editRecordBtn').onclick = function () {
 }
 
 
+document.getElementById('btn-export').addEventListener('click', function() {
+    // Отправляем GET-запрос на сервер для экспорта CSV
+    fetch('/export_csv', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/csv'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.blob();
+        } else {
+            throw new Error('Ошибка при экспорте данных');
+        }
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'data_export.csv';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка при экспорте данных');
+    });
+});

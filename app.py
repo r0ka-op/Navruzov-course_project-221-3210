@@ -1,13 +1,16 @@
 ## basic
+import csv
+import io
 from datetime import datetime
+import pandas as pd
 
-from flask import Flask, render_template, url_for, redirect, request, jsonify, flash
+from flask import Flask, render_template, url_for, redirect, request, jsonify, flash,  send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 
 ## forms for auth
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, FileField
 from wtforms.validators import InputRequired, Length, ValidationError
 
 ## session
@@ -108,6 +111,10 @@ class LoginForm(FlaskForm):
     password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "password"})
     submit = SubmitField("Login")
 
+
+class ImportForm(FlaskForm):
+    csv_file = FileField('CSV File', validators=[InputRequired()])
+    submit = SubmitField('Import')
 
 
 ## main part ------------------------------------------
@@ -311,6 +318,38 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
+
+
+@app.route('/export_csv', methods=['GET'])
+@login_required
+def export_csv():
+    user_id = current_user.user_id
+    tasks = Task.query.filter_by(user_id=user_id).all()
+    events = Event.query.filter_by(user_id=user_id).all()
+
+    print(f"Tasks: {tasks}")
+    print(f"Events: {events}")
+
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+    writer.writerow(['Task ID', 'Title', 'Description', 'Due Date', 'Priority', 'Status'])
+    for task in tasks:
+        writer.writerow([task.task_id, task.title, task.description, task.due_date, task.priority, task.status])
+
+    writer.writerow([])
+
+    writer.writerow(['Event ID', 'Title', 'Description', 'Event Date'])
+    for event in events:
+        writer.writerow([event.event_id, event.title, event.description, event.event_date])
+
+    csv_data = output.getvalue().encode('utf-8')
+    byte_output = io.BytesIO(csv_data)
+    byte_output.seek(0)
+
+    return send_file(byte_output, mimetype='text/csv', as_attachment=True, download_name='data_export.csv')
+
+
 
 
 # db.drop_all()

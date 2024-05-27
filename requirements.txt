@@ -17,3 +17,4 @@ SQLAlchemy
 typing_extensions
 Werkzeug
 WTForms
+pandas
