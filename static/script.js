@@ -292,3 +292,32 @@ document.getElementById('btn-export').addEventListener('click', function() {
         alert('Произошла ошибка при экспорте данных');
     });
 });
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('import-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        let formData = new FormData(this);
+
+        fetch('/import_csv', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Ошибка:', data.error);
+                alert('Ошибка: ' + data.error);
+            } else {
+                console.log('Успех:', data.message);
+                alert('Успех: ' + data.message);
+                location.reload(); // Перезагрузите страницу или выполните другие действия
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Ошибка: ' + error);
+        });
+    });
+});

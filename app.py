@@ -10,6 +10,7 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, log
 
 ## forms for auth
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, FileField
 from wtforms.validators import InputRequired, Length, ValidationError
 
@@ -18,6 +19,8 @@ from flask import session
 
 ## crypt
 from flask_bcrypt import Bcrypt
+
+from reset import reset_bd
 
 app = Flask(__name__)
 
@@ -113,18 +116,28 @@ class LoginForm(FlaskForm):
 
 
 class ImportForm(FlaskForm):
-    csv_file = FileField('CSV File', validators=[InputRequired()])
-    submit = SubmitField('Import')
+    csv_file = FileField('CSV файл', validators=[
+        FileRequired(),
+        FileAllowed(['csv'], 'Только CSV файлы!')
+    ])
 
 
 ## main part ------------------------------------------
+@app.route('/reset_bd')
+@login_required
+def reset():
+    return reset_bd(db, User, Task, Event, UserSettings)
+
+
+
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
     user_id = current_user.user_id
     tasks = Task.query.filter_by(user_id=user_id).all()
     events = Event.query.filter_by(user_id=user_id).all()
-    return render_template('index.html', tasks=tasks, events=events)
+    form = ImportForm()
+    return render_template('index.html', tasks=tasks, events=events, form=form)
 
 
 @app.route('/add_to_bd', methods=['POST'])
@@ -350,52 +363,80 @@ def export_csv():
     return send_file(byte_output, mimetype='text/csv', as_attachment=True, download_name='data_export.csv')
 
 
+@app.route('/import_csv', methods=['GET', 'POST'])
+@login_required
+def import_csv():
+    form = ImportForm()
 
+    if form.validate_on_submit():
+        csv_file = form.csv_file.data
+        if csv_file.filename.endswith('.csv'):
+            try:
+                lines = csv_file.read().decode('utf-8').splitlines()
 
-# db.drop_all()
-# db.create_all()
-#
-# user1 = User(username='ivan', first_name='Иван', last_name='Иванов', email='ivan@example.com', password='$2b$12$XNLQZw4Z8O0Urp0TfOTpy.JsNL4NDmFqy2mQRIJAcPT0nxnxGKIj6')
-# user2 = User(username='anna', first_name='Анна', last_name='Смирнова', email='anna@example.com', password='$2b$12$8N/A6mEXnFKd3saW5CjmQeZoq/bQjdKSeKazyaXxdvCz2Z4YqEbIO')
-# db.session.add_all([user1, user2])
-# db.session.commit()
-#
-# tasks = [
-#     Task(user_id=user1.user_id, title='Название задачи 1', description='Описание задачи 1',
-#          due_date=datetime(2024, 6, 1), priority=5, status='В процессе'),
-#     Task(user_id=user1.user_id, title='Название задачи 2', description='Описание задачи 2',
-#          due_date=datetime(2024, 6, 2), priority=3, status='Завершено'),
-#     Task(user_id=user1.user_id, title='Название задачи 3', description='Описание задачи 3',
-#          due_date=datetime(2024, 6, 3), priority=7, status='В процессе'),
-#     Task(user_id=user2.user_id, title='Название задачи 4', description='Описание задачи 4',
-#          due_date=datetime(2024, 6, 4), priority=2, status='Ожидание'),
-#     Task(user_id=user2.user_id, title='Название задачи 5', description='Описание задачи 5',
-#          due_date=datetime(2024, 6, 5), priority=8, status='В процессе')
-# ]
-# db.session.add_all(tasks)
-# db.session.commit()
-#
-# events = [
-#     Event(user_id=user1.user_id, title='Название события 1', description='Описание события 1',
-#           event_date=datetime(2024, 7, 1, 10, 0)),
-#     Event(user_id=user1.user_id, title='Название события 2', description='Описание события 2',
-#           event_date=datetime(2024, 7, 2, 11, 0)),
-#     Event(user_id=user1.user_id, title='Название события 3', description='Описание события 3',
-#           event_date=datetime(2024, 7, 3, 12, 0)),
-#     Event(user_id=user2.user_id, title='Название события 4', description='Описание события 4',
-#           event_date=datetime(2024, 7, 4, 13, 0)),
-#     Event(user_id=user2.user_id, title='Название события 5', description='Описание события 5',
-#           event_date=datetime(2024, 7, 5, 14, 0))
-# ]
-# db.session.add_all(events)
-# db.session.commit()
-#
-# settings = [
-#     UserSettings(user_id=user1.user_id, theme='Тема светлая'),
-#     UserSettings(user_id=user2.user_id, theme='Тема темная')
-# ]
-# db.session.add_all(settings)
-# db.session.commit()
+                task_start_idx = None
+                event_start_idx = None
+
+                for idx, line in enumerate(lines):
+                    if line.startswith('Task ID'):
+                        task_start_idx = idx
+                    elif line.startswith('Event ID'):
+                        event_start_idx = idx
+
+                if task_start_idx is None or event_start_idx is None:
+                    flash('CSV файл должен содержать обе секции: Task и Event', 'danger')
+                    return redirect(url_for('index'))
+
+                tasks_lines = lines[task_start_idx:event_start_idx]
+                events_lines = lines[event_start_idx:]
+
+                tasks_df = pd.read_csv(io.StringIO('\n'.join(tasks_lines)))
+                events_df = pd.read_csv(io.StringIO('\n'.join(events_lines)))
+
+                if 'Due Date' not in tasks_df.columns:
+                    flash("CSV файл должен содержать колонку 'Due Date' в секции Task", 'danger')
+                    return redirect(url_for('index'))
+
+                if 'Event Date' not in events_df.columns:
+                    flash("CSV файл должен содержать колонку 'Event Date' в секции Event", 'danger')
+                    return redirect(url_for('index'))
+
+                tasks_df['Due Date'] = pd.to_datetime(tasks_df['Due Date'], errors='coerce')
+                events_df['Event Date'] = pd.to_datetime(events_df['Event Date'], errors='coerce')
+
+                for index, row in tasks_df.iterrows():
+                    new_task = Task(
+                        user_id=current_user.user_id,
+                        title=row['Title'],
+                        description=row['Description'],
+                        due_date=row['Due Date'].date() if not pd.isnull(row['Due Date']) else None,
+                        priority=row['Priority'],
+                        status=row['Status']
+                    )
+                    db.session.add(new_task)
+
+                for index, row in events_df.iterrows():
+                    new_event = Event(
+                        user_id=current_user.user_id,
+                        title=row['Title'],
+                        description=row['Description'],
+                        event_date=row['Event Date'] if not pd.isnull(row['Event Date']) else None
+                    )
+                    db.session.add(new_event)
+
+                db.session.commit()
+                flash('CSV файл успешно импортирован!', 'success')
+                return redirect(url_for('index'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Ошибка при импорте CSV файла: {str(e)}', 'danger')
+                return redirect(url_for('index'))
+        else:
+            flash('Файл должен быть формата CSV (.csv)', 'danger')
+            return redirect(url_for('index'))
+
+    return render_template('import_csv.html', form=form)
+
 
 
 if __name__ == '__main__':

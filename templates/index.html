@@ -17,6 +17,19 @@
         <a href="/logout">Выход</a>
         <input type="search" placeholder="Search" style="padding: 5px;">
     </nav>
+
+    <div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
     <div class="container">
         <div class="tasks">
             <h2>Tasks</h2>
@@ -38,9 +51,10 @@
         <div class="sidebar">
             <div class="buttons" style="margin-left: 20px;">
                 <div class="btn-group-vertical">
-                    <button id="add-record-btn" class="btn btn-primary btn-add mb-2 rounded" data-bs-toggle="modal" data-bs-target="#addRecordModal">Добавить новую запись</button>
+                    <button class="btn btn-primary btn-add mb-2 rounded" id="add-record-btn" data-bs-toggle="modal" data-bs-target="#addRecordModal">Добавить новую запись</button>
                     <button class="btn btn-info mb-2 rounded" id="btn-export">Экспортировать</button>
-                    <button class="btn btn-dark mb-2 rounded" id="btn-import">Импортировать</button>
+                    <button class="btn btn-dark mb-2 rounded" id="btn-import" data-bs-toggle="modal" data-bs-target="#importModal">Импортировать</button>
+
                 </div>
             </div>
             <div class="events">
@@ -58,6 +72,9 @@
 
         <!-- Модальное окно для просмотра и редактирования записи -->
         {% include 'view_edit_modal.html' %}
+
+        <!-- Модальное окно для импорта -->
+        {% include 'import_csv.html' %}
 
 
     </div>
