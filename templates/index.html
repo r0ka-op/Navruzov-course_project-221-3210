@@ -15,7 +15,13 @@
         <a href="/profile">Личный кабинет</a>
         <a href="/settings">Настройки</a>
         <a href="/logout">Выход</a>
-        <input type="search" placeholder="Search" style="padding: 5px;">
+        <br>
+        <input type="search" id="search-input" placeholder="Поиск по названию" style="padding: 5px; margin: 4px; margin-top: 7px" class="rounded">
+        <button id="search-btn" class="btn btn-primary" style="padding: 5px; margin-top: -3px">Поиск</button>
+        <br>
+        <input type="date" id="start-date" name="start-date" class="rounded" style="padding: 5px; margin: 4px; margin-top: 7px">&mdash;
+        <input type="date" id="end-date" name="end-date" class="rounded" style="padding: 5px; margin: 4px; margin-top: 7px">
+
     </nav>
 
     <div>
@@ -33,20 +39,30 @@
     <div class="container">
         <div class="tasks">
             <h2>Tasks</h2>
-            {% for task in tasks %}
-            <div class="row g-0 bg-body-secondary position-relative rounded">
-                <div class="col-md-4 mb-md-0 p-md-4">
-                    <img src="{{ url_for('static', filename='images/dokatilis.jpg') }}" class="rounded" style="max-width: 220px;" alt="task_image">
-                </div>
-                <div class="col-md-6 p-4 ps-md-0">
-                    <h5 class="mt-0">{{ task.title }}</h5>
-                    <p>{{ task.description }}</p>
-                    <button type="button" class="get-info btn btn-info" data-bs-toggle="modal" data-bs-target="#viewRecordModal" data-record-id="{{ task.task_id }}" data-record-type="task">Подробнее</button>
-                </div>
-            </div>
+            <div id="task-list">
+                {% for task in tasks %}
+                <div class="card text-center">
+                    <div class="card-header">
+<!--                        <img src="{{ url_for('static', filename='images/dokatilis.jpg') }}" class="rounded" style="max-width: 220px;" alt="task_image">-->
+                        {% if not task.status %}
+                            Выполнено
+                        {% else %}
+                            Не завершено
+                        {% endif %}
 
-            <br>
-            {% endfor %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ task.title }}</h5>
+                        <p class="card-text">{{ task.description }}</p>
+                        <button type="button" class="get-info btn btn-info" data-bs-toggle="modal" data-bs-target="#viewRecordModal" data-record-id="{{ task.task_id }}" data-record-type="task">Подробнее</button>
+                    </div>
+                    <div class="card-footer text-body-secondary">
+                        Выполнить до: {{ task.due_date | format_date }}
+                    </div>
+                </div>
+                <br>
+                {% endfor %}
+            </div>
         </div>
         <div class="sidebar">
             <div class="buttons" style="margin-left: 20px;">
@@ -54,41 +70,35 @@
                     <button class="btn btn-primary btn-add mb-2 rounded" id="add-record-btn" data-bs-toggle="modal" data-bs-target="#addRecordModal">Добавить новую запись</button>
                     <button class="btn btn-info mb-2 rounded" id="btn-export">Экспортировать</button>
                     <button class="btn btn-dark mb-2 rounded" id="btn-import" data-bs-toggle="modal" data-bs-target="#importModal">Импортировать</button>
-
                 </div>
             </div>
             <div class="events">
                 <h2>Events</h2>
-                {% for event in events %}
-                <div class="event-item"><button type="button" class="btn btn-link get-info" data-bs-toggle="modal" data-bs-target="#viewRecordModal" data-record-id="{{ event.event_id }}" data-record-type="event">{{ event.title }}</button></div>
-                {% endfor %}
+                <div id="event-list">
+                    {% for event in events %}
+                    <div class="event-item"><button type="button" class="btn link-primary get-info" data-bs-toggle="modal" data-bs-target="#viewRecordModal" data-record-id="{{ event.event_id }}" data-record-type="event">{{ event.title }}</button></div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
 
         <!-- Модальное окно добавления -->
-         {% include 'add_modal.html' %}
-
-
+        {% include 'add_modal.html' %}
 
         <!-- Модальное окно для просмотра и редактирования записи -->
         {% include 'view_edit_modal.html' %}
 
         <!-- Модальное окно для импорта -->
         {% include 'import_csv.html' %}
-
-
     </div>
-    <div class="description">
-        <h2>Description</h2>
-        <p>Lorem Ipsum - это текст-"рыба", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной "рыбой" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без заметных изменений пять веков, но и перешагнул в электронный дизайн. Его популяризации в новое время послужили публикация листов Letraset с образцами Lorem Ipsum в 60-х годах и, в более недавнее время, программы электронной вёрстки типа Aldus PageMaker, в шаблонах которых используется Lorem Ipsum.</p>
-    </div>
-
-
-<!--    <footer class="bg-dark text-white text-center py-3">-->
-<!--        <p>&copy; 2024 TaskTrek. Все права защищены.</p>-->
-<!--    </footer>-->
+    <footer class="mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">Курсовой проект &#169; Наврузов Рамазан 221-3210</span>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

@@ -1,5 +1,4 @@
-
-<div class="modal fade" id="viewRecordModal" tabindex="-1" aria-labelledby="viewRecordModalLabel" aria-hidden="true">
+<div class="modal fade" id="viewRecordModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="viewRecordModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -31,7 +30,7 @@
                 </form>
             </div>
             <div class="modal-footer" id="view_edit_footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelBtn">Закрыть</button>
 
                 <button type="button" class="btn btn-primary" id="editRecordBtn" data-record-id="id" data-record-type="type">Изменить</button>
                 <button type="button" class="btn btn-danger" id="deleteRecordBtn" data-record-id="id" data-record-type="type">Удалить</button>

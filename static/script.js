@@ -4,7 +4,8 @@ function loadRecordData(recordId, recordType) {
     fetch(`/get_record_info/${recordType}/${recordId}`)
         .then(response => response.json())
         .then(data => {
-            // Вставляем полученные данные в соответствующие поля формы
+            document.getElementById('viewRecordModal').removeAttribute('data-bs-backdrop');
+
             document.getElementById('viewRecordTitle').value = data.title;
             document.getElementById('viewRecordDescription').value = data.description;
             document.getElementById('viewRecordDate').value = data.date;
@@ -17,17 +18,16 @@ function loadRecordData(recordId, recordType) {
             // Дополнительно, если есть поля приоритета и статуса, обновите их значения, если они возвращаются с сервера
             if (data.type === 'event') {
                 console.log(data.id)
+                document.getElementById('viewRecordModalLabel').innerText = 'Просмотр События';
                 editButton.dataset.recordId = data.id;
                 editButton.dataset.recordType = "event";
                 deleteButton.dataset.recordId = data.id;
                 deleteButton.dataset.recordType = "event";
-                document.getElementById('viewRecordPriority').value = data.priority;
-                document.getElementById('viewRecordPriorityContainer').style.display = 'block';
-                document.getElementById('viewRecordPriorityContainer').remove();
-                document.getElementById('viewRecordStatusContainer').remove();
             }
             if (data.type === 'task') {
                 console.log(data.id)
+                document.getElementById('viewRecordModalLabel').innerText = 'Просмотр Задачи';
+
                 editButton.dataset.recordId = data.id;
                 editButton.dataset.recordType = "task";
                 deleteButton.dataset.recordId = data.id;
@@ -44,9 +44,6 @@ function loadRecordData(recordId, recordType) {
                     document.getElementById('viewRecordPriority').value = "Средний";
                 else if (data.priority === 3)
                     document.getElementById('viewRecordPriority').value = "Высокий";
-
-                document.getElementById('viewRecordPriorityContainer').style.display = 'block';
-                document.getElementById('viewRecordStatusContainer').style.display = 'block';
             }
         })
         .catch(error => console.error('Ошибка при загрузке данных о задаче или событии:', error));
@@ -67,9 +64,7 @@ document.querySelectorAll('.get-info').forEach(btn => {
 
 // Функция для удаления записи (задачи или события)
 function deleteRecord(recordId, recordType) {
-    // Подтверждаем действие удаления
     if (confirm('Вы уверены, что хотите удалить эту запись?')) {
-        // Отправляем DELETE запрос на сервер для удаления записи
         fetch(`/delete_record/${recordType}/${recordId}`, {
             method: 'DELETE',
             headers: {
@@ -143,11 +138,15 @@ function updateRecord(recordId, recordType) {
 }
 
 function editTask() {
+    document.getElementById('viewRecordModalLabel').innerText = 'Изменение Задачи';
     document.getElementById('viewRecordTitle').removeAttribute('readonly');
     document.getElementById('viewRecordDescription').removeAttribute('readonly');
     document.getElementById('viewRecordDate').removeAttribute('readonly');
     document.getElementById('viewRecordPriority').removeAttribute('readonly');
     document.getElementById('viewRecordStatus').removeAttribute('readonly');
+
+    document.getElementById('viewRecordPriorityContainer').style.display = 'block';
+    document.getElementById('viewRecordStatusContainer').style.display = 'block';
 
     // Меняем тип ячейки Приоритет
     const inputElement = document.getElementById('viewRecordPriority');
@@ -205,15 +204,15 @@ function editTask() {
 }
 
 function editEvent() {
+    document.getElementById('viewRecordModalLabel').innerText = 'Изменение События';
     document.getElementById('viewRecordTitle').removeAttribute('readonly');
     document.getElementById('viewRecordDescription').removeAttribute('readonly');
     document.getElementById('viewRecordDate').removeAttribute('readonly');
     console.log("editEvent")
-
-
-
 }
 
+
+// Функция для редактирования записи
 document.getElementById('editRecordBtn').onclick = function () {
     var recordId = this.getAttribute('data-record-id');
     var recordType = this.getAttribute('data-record-type');
@@ -228,11 +227,8 @@ document.getElementById('editRecordBtn').onclick = function () {
 
     modalFooter.innerHTML = '';
 
-    const cancelButton = document.createElement('button');
-    cancelButton.type = 'button';
-    cancelButton.className = 'btn btn-secondary';
-    cancelButton.setAttribute('data-bs-dismiss', 'modal');
-    cancelButton.textContent = 'Отмена';
+    document.getElementById('viewRecordModal').setAttribute('data-bs-backdrop', 'static');
+
 
     const saveButton = document.createElement('button');
     saveButton.type = 'submit';
@@ -242,7 +238,6 @@ document.getElementById('editRecordBtn').onclick = function () {
     saveButton.setAttribute('data-record-type', recordType);
     saveButton.textContent = 'Сохранить';
 
-    modalFooter.appendChild(cancelButton);
     modalFooter.appendChild(saveButton);
 
 
@@ -261,6 +256,7 @@ document.getElementById('editRecordBtn').onclick = function () {
 }
 
 
+// Функция для экспорта данных
 document.getElementById('btn-export').addEventListener('click', function() {
     // Отправляем GET-запрос на сервер для экспорта CSV
     fetch('/export_csv', {
@@ -294,6 +290,7 @@ document.getElementById('btn-export').addEventListener('click', function() {
 });
 
 
+// Функция для импорта данных
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('import-form').addEventListener('submit', function(event) {
         event.preventDefault();
@@ -312,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.log('Успех:', data.message);
                 alert('Успех: ' + data.message);
-                location.reload(); // Перезагрузите страницу или выполните другие действия
+                location.reload();
             }
         })
         .catch(error => {
@@ -320,4 +317,195 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Ошибка: ' + error);
         });
     });
+});
+
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+
+    const daysOfWeek = ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"];
+    const dayOfWeek = daysOfWeek[date.getUTCDay()];
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Месяцы в JavaScript начинаются с 0
+    const year = date.getUTCFullYear();
+
+    return `${dayOfWeek} ${day}-${month}-${year}`;
+}
+
+
+// Функция для поиска по названию
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+    const originalTasks = document.getElementById('task-list').innerHTML;
+    const originalEvents = document.getElementById('event-list').innerHTML;
+
+    searchInput.addEventListener('input', function() {
+        let query = searchInput.value;
+        let startDate = startDateInput.value;
+        let endDate = endDateInput.value;
+
+        if (startDate && !endDate) {
+            endDate = new Date().toISOString().split('T')[0];
+        } else if (!startDate && endDate) {
+            startDate = endDate;
+        }
+
+        if (query.length >= 1 || startDate || endDate) {
+            fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'query': query,
+                    'start_date': startDate,
+                    'end_date': endDate
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const taskList = document.getElementById('task-list');
+                const eventList = document.getElementById('event-list');
+
+                taskList.innerHTML = '';
+                eventList.innerHTML = '';
+
+                if (data.tasks.length > 0) {
+                    data.tasks.forEach(task => {
+                        const taskItem = document.createElement('div');
+                        taskItem.className = 'card text-center';
+                        taskItem.innerHTML = `
+                            <div class="card-header">
+                                ${task.status ? 'Не завершено' : 'Выполнено'}
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">${task.title}</h5>
+                                <p class="card-text">${task.description}</p>
+                                <button type="button" class="get-info btn btn-info" data-bs-toggle="modal" data-bs-target="#viewRecordModal" data-record-id="${task.task_id}" data-record-type="task">Подробнее</button>
+                            </div>
+                            <div class="card-footer text-body-secondary">
+                                Выполнить до: ${formatDate(task.due_date)}
+                            </div>
+                        `;
+                        taskList.appendChild(document.createElement('br'));
+                        taskList.appendChild(taskItem);
+                    });
+                }
+
+                if (data.events.length > 0) {
+                    data.events.forEach(event => {
+                        const eventItem = document.createElement('div');
+                        eventItem.className = 'event-item';
+                        eventItem.innerHTML = `
+                            <button type="button" class="btn link-primary get-info" data-bs-toggle="modal" data-bs-target="#viewRecordModal" data-record-id="${event.event_id}" data-record-type="event">${event.title}</button>
+                        `;
+                        eventList.appendChild(eventItem);
+                    });
+                }
+
+                // Если списки пусты, отобразить сообщение об отсутствии результатов
+                if (taskList.children.length === 0) {
+                    const noResultsMessage = document.createElement('div');
+                    noResultsMessage.innerHTML = 'По вашему запросу ничего не найдено.';
+                    taskList.appendChild(noResultsMessage);
+                }
+                if (eventList.children.length === 0) {
+                    const noResultsMessage = document.createElement('div');
+                    noResultsMessage.innerHTML = 'По вашему запросу ничего не найдено.';
+                    eventList.appendChild(noResultsMessage);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        } else if (query.length === 0) {
+            document.getElementById('task-list').innerHTML = originalTasks;
+            document.getElementById('event-list').innerHTML = originalEvents;
+        }
+    });
+});
+
+
+// Функция для поиска по диапазону дат
+document.getElementById('search-btn').addEventListener('click', function() {
+    var startDate = document.getElementById('start-date').value;
+    var endDate = document.getElementById('end-date').value;
+
+    // Если введена только одна дата, установим вторую на сегодняшнюю
+    if (startDate && !endDate) {
+        endDate = new Date().toISOString().split('T')[0];
+        document.getElementById('end-date').value = endDate;
+    } else if (!startDate && endDate) {
+        startDate = new Date().toISOString().split('T')[0];
+        document.getElementById('start-date').value = startDate;
+    }
+
+
+    var searchParams = new URLSearchParams({
+        'start_date': startDate,
+        'end_date': endDate
+    });
+
+    fetch('/search_by_date?' + searchParams.toString())
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            console.log(data);
+            const taskList = document.getElementById('task-list');
+            const eventList = document.getElementById('event-list');
+
+            taskList.innerHTML = '';
+            eventList.innerHTML = '';
+
+            if (data.tasks.length > 0) {
+                data.tasks.forEach(task => {
+                    const taskItem = document.createElement('div');
+                    taskItem.className = 'card text-center';
+                    taskItem.innerHTML = `
+                        <div class="card-header">
+                            ${task.status ? 'Не завершено' : 'Выполнено'}
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">${task.title}</h5>
+                            <p class="card-text">${task.description}</p>
+                            <button type="button" class="get-info btn btn-info" data-bs-toggle="modal" data-bs-target="#viewRecordModal" data-record-id="${task.task_id}" data-record-type="task">Подробнее</button>
+                        </div>
+                        <div class="card-footer text-body-secondary">
+                            Выполнить до: ${formatDate(task.due_date)}
+                        </div>
+                        
+                    `;
+                    taskList.appendChild(document.createElement('br'));
+                    taskList.appendChild(taskItem);
+                });
+            }
+
+            if (data.events.length > 0) {
+                data.events.forEach(event => {
+                    const eventItem = document.createElement('div');
+                    eventItem.className = 'event-item';
+                    eventItem.innerHTML = `
+                        <button type="button" class="btn link-primary get-info" data-bs-toggle="modal" data-bs-target="#viewRecordModal" data-record-id="${event.event_id}" data-record-type="event">${event.title}</button>
+                    `;
+                    eventList.appendChild(eventItem);
+                });
+            }
+
+
+            if (taskList.children.length === 0) {
+                const noResultsMessage = document.createElement('div');
+                noResultsMessage.innerHTML = 'По вашему запросу ничего не найдено.';
+                taskList.appendChild(noResultsMessage);
+            }
+            if (eventList.children.length === 0) {
+                const noResultsMessage = document.createElement('div');
+                noResultsMessage.innerHTML = 'По вашему запросу ничего не найдено.';
+                eventList.appendChild(noResultsMessage);
+            }
+
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+        });
 });

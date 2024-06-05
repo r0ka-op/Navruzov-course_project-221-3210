@@ -1,23 +1,18 @@
-## basic
 import csv
 import io
 from datetime import datetime
+from babel.dates import format_datetime
 import pandas as pd
 
 from flask import Flask, render_template, url_for, redirect, request, jsonify, flash,  send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 
-## forms for auth
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, FileField
 from wtforms.validators import InputRequired, Length, ValidationError
 
-## session
-from flask import session
-
-## crypt
 from flask_bcrypt import Bcrypt
 
 from reset import reset_bd
@@ -34,15 +29,19 @@ bcrypt = Bcrypt(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'  # если пользователь попытается получить доступ к странице без аутентификации, то его перекинет на login
+login_manager.login_view = 'login'
 
 
-@login_manager.user_loader  # запоминает id user'а для сессии
+def format_date(value):
+    return format_datetime(value, "EEEE dd-MM-yyyy", locale='ru_RU')
+app.jinja_env.filters['format_date'] = format_date
+
+
+@login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-## classes
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -122,7 +121,7 @@ class ImportForm(FlaskForm):
     ])
 
 
-## main part ------------------------------------------
+
 @app.route('/reset_bd')
 @login_required
 def reset():
@@ -437,6 +436,55 @@ def import_csv():
 
     return render_template('import_csv.html', form=form)
 
+
+@app.route('/search', methods=['POST', 'GET'])
+@login_required
+def search():
+    query = request.form.get('query')
+    print(query)
+    user_id = current_user.user_id
+
+    if not query:
+        return jsonify({'tasks': [], 'events': []})
+
+    tasks = Task.query.filter(Task.user_id == user_id, Task.title.ilike(f'%{query}%')).all()
+    events = Event.query.filter(Event.user_id == user_id, Event.title.ilike(f'%{query}%')).all()
+
+    tasks_data = [{'task_id': task.task_id, 'title': task.title, 'due_date': task.due_date, 'description': task.description} for task in tasks]
+    print(tasks_data)
+    events_data = [{'event_id': event.event_id, 'title': event.title} for event in events]
+    print(events_data)
+
+    return jsonify({'tasks': tasks_data, 'events': events_data})
+
+
+@app.route('/search_by_date', methods=['POST', 'GET'])
+@login_required
+def search_by_date():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    print(start_date, end_date)
+    print(request.data)
+    user_id = current_user.user_id
+
+    if not start_date or not end_date:
+        return jsonify({'error': 'Необходимо указать обе даты'})
+
+    try:
+        print(1)
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({'error': 'Некорректный формат даты'})
+
+    print(start_date, end_date)
+    tasks = Task.query.filter(Task.user_id == user_id, Task.due_date.between(start_date, end_date)).all()
+    events = Event.query.filter(Event.user_id == user_id, Event.event_date.between(start_date, end_date)).all()
+    print(tasks, events)
+    tasks_data = [{'task_id': task.task_id, 'title': task.title, 'due_date': task.due_date.strftime('%d-%m-%Y'), 'description': task.description} for task in tasks]
+    events_data = [{'event_id': event.event_id, 'title': event.title, 'event_date': event.event_date.strftime('%d-%m-%Y')} for event in events]
+
+    return jsonify({'tasks': tasks_data, 'events': events_data})
 
 
 if __name__ == '__main__':
