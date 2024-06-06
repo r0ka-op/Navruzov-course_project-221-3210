@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from babel.dates import format_datetime
 import pandas as pd
 
@@ -473,6 +473,7 @@ def search_by_date():
     try:
         print(1)
         start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        start_date = start_date - timedelta(days=1)
         end_date = datetime.strptime(end_date, '%Y-%m-%d')
     except ValueError:
         return jsonify({'error': 'Некорректный формат даты'})

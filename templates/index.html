@@ -6,6 +6,9 @@
     <title>TaskTrek</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='calendar_styles.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"/>
+    <script defer src="{{ url_for('static', filename='calendar_script.js') }}"></script>
 </head>
 <body>
     <header>
@@ -24,6 +27,34 @@
 
     </nav>
 
+    <div class="calendar dark">
+        <div class="calendar_inner">
+            <div class="calendar_controls">
+                <div class="calendar_headings">
+                    <i class="fa-solid fa-arrow-left" id="prev"></i>
+                    <h2 class="months_year"></h2>
+                    <i class="fa-solid fa-arrow-right" id="next"></i>
+                </div>
+                <div class="current_datetime">
+                    <button type="button" class="btn btn-outline-success btn-sm" id="resetBtn">Reset</button>
+                    <p class="datetxt" id="todayText"></p>
+                </div>
+                <div class="days_date">
+                    <ul class="days">
+                        <li>Sun</li>
+                        <li>Mon</li>
+                        <li>Tue</li>
+                        <li>Wed</li>
+                        <li>Thu</li>
+                        <li>Fri</li>
+                        <li>Sat</li>
+                    </ul>
+                    <ul class="dates"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -36,6 +67,7 @@
             {% endif %}
         {% endwith %}
     </div>
+
     <div class="container">
         <div class="tasks">
             <h2>Tasks</h2>

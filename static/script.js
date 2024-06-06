@@ -319,7 +319,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
 function formatDate(dateString) {
     const date = new Date(dateString);
 
