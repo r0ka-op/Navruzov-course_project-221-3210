@@ -482,7 +482,7 @@ def search_by_date():
     tasks = Task.query.filter(Task.user_id == user_id, Task.due_date.between(start_date, end_date)).all()
     events = Event.query.filter(Event.user_id == user_id, Event.event_date.between(start_date, end_date)).all()
     print(tasks, events)
-    tasks_data = [{'task_id': task.task_id, 'title': task.title, 'due_date': task.due_date.strftime('%d-%m-%Y'), 'description': task.description} for task in tasks]
+    tasks_data = [{'task_id': task.task_id, 'title': task.title, 'due_date': task.due_date.strftime('%m-%d-%Y'), 'description': task.description} for task in tasks]
     events_data = [{'event_id': event.event_id, 'title': event.title, 'event_date': event.event_date.strftime('%d-%m-%Y')} for event in events]
 
     return jsonify({'tasks': tasks_data, 'events': events_data})

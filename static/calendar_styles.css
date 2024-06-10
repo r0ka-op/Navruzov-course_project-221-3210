@@ -1,13 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Ruda:wght@400;600;700&display=swap");
 
 :root {
-  --calendar-bg-color: #262829;
-  --calendar-font-color: #fff;
-  --weekdays-border-bottom-color: #404040;
-  --calendar-date-hover-color: #b3b3b3;
-  --calendar-dummy-color: #505050;
-  --calendar-current-date-color: #1b1f21;
-  --calendar-today-color: linear-gradient(to bottom, #03a9f4, #2196f3);
+  --calendar-bg-color: #fafaff; /* Белый фон */
+  --calendar-font-color: #000000; /* Черный текст */
+  --weekdays-border-bottom-color: #dcdcdc; /* Светло-серый для границ */
+  --calendar-date-hover-color: #d5d5d5; /* Светло-серый при наведении */
+  --calendar-dummy-color: #a0a0a0; /* Серый цвет для неактивных дней */
+  --calendar-current-date-color: #f0f0f0; /* Светло-серый для текущей даты */
+  --calendar-today-color: linear-gradient(to bottom, #03a9f4, #2196f3); /* Цвет для сегодняшнего дня */
 }
 
 * {

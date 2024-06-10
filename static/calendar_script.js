@@ -44,6 +44,7 @@ const displayCalendar = () => {
     let lastDayofMonth = new Date(year, month, lastDateofMonth).getDay(); // последний день месяца
     let lastDateofLastMonth = new Date(year, month, 0).getDate(); // последняя дата предыдущего месяца
     let days = "";
+
     // последние дни предыдущего месяца
     for (let i = firtDayOfMonth; i > 0; i--) {
         days += `<li class="dummy">${lastDateofLastMonth - i + 1}</li>`;
@@ -68,6 +69,8 @@ const displayCalendar = () => {
     document.querySelectorAll('.dates li:not(.dummy)').forEach(day => {
         day.addEventListener('click', function() {
             const selectedDate = this.dataset.date;
+            document.querySelectorAll('.dates li').forEach(d => d.classList.remove('active'));
+            this.classList.add('active');
             searchByDate(selectedDate);
         });
     });

@@ -15,7 +15,6 @@ function loadRecordData(recordId, recordType) {
 
             console.log(data)
 
-            // Дополнительно, если есть поля приоритета и статуса, обновите их значения, если они возвращаются с сервера
             if (data.type === 'event') {
                 console.log(data.id)
                 document.getElementById('viewRecordModalLabel').innerText = 'Просмотр События';
@@ -45,6 +44,12 @@ function loadRecordData(recordId, recordType) {
                 else if (data.priority === 3)
                     document.getElementById('viewRecordPriority').value = "Высокий";
             }
+
+            // Изменяем класс form-control на form-control-plaintext
+            document.querySelectorAll('#viewRecordForm .form-control').forEach(input => {
+                input.classList.remove('form-control');
+                input.classList.add('form-control-plaintext');
+            });
         })
         .catch(error => console.error('Ошибка при загрузке данных о задаче или событии:', error));
 }
@@ -198,6 +203,12 @@ function editTask() {
         option.value = optionData.value;
         option.text = optionData.text;
         selectElementStatus.appendChild(option);
+    });
+
+    // Изменяем класс form-control-plaintext на form-control
+    document.querySelectorAll('#viewRecordForm .form-control-plaintext').forEach(input => {
+        input.classList.remove('form-control-plaintext');
+        input.classList.add('form-control');
     });
 
     statusInput.parentNode.replaceChild(selectElementStatus, statusInput);

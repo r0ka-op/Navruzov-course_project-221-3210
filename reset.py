@@ -6,9 +6,9 @@ def reset_bd(db, User, Task, Event, UserSettings):
     db.create_all()
 
     user1 = User(username='ivan', first_name='Иван', last_name='Иванов', email='ivan@example.com',
-                 password='$2b$12$XNLQZw4Z8O0Urp0TfOTpy.JsNL4NDmFqy2mQRIJAcPT0nxnxGKIj6')
+                 password='$2b$12$SOi2vmahdQ7r2HocuNQbpO1IYBYvUhCWdR5KReErrh9cIkKRGcd4W')
     user2 = User(username='anna', first_name='Анна', last_name='Смирнова', email='anna@example.com',
-                 password='$2b$12$8N/A6mEXnFKd3saW5CjmQeZoq/bQjdKSeKazyaXxdvCz2Z4YqEbIO')
+                 password='$2b$12$SOi2vmahdQ7r2HocuNQbpO1IYBYvUhCWdR5KReErrh9cIkKRGcd4W')
     db.session.add_all([user1, user2])
     db.session.commit()
 
