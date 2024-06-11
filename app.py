@@ -1,10 +1,11 @@
+# app.py
 import csv
 import io
 from datetime import datetime, timedelta
 from babel.dates import format_datetime
 import pandas as pd
 
-from flask import Flask, render_template, url_for, redirect, request, jsonify, flash,  send_file
+from flask import Flask, render_template, url_for, redirect, request, jsonify, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 
@@ -15,12 +16,11 @@ from wtforms.validators import InputRequired, Length, ValidationError
 
 from flask_bcrypt import Bcrypt
 
+from config import Config
 from reset import reset_bd
 
 app = Flask(__name__)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tasktrek.db'
-app.config['SECRET_KEY'] = 'roma'
+app.config.from_object(Config)
 
 db = SQLAlchemy(app)
 app.app_context().push()
@@ -34,6 +34,8 @@ login_manager.login_view = 'login'
 
 def format_date(value):
     return format_datetime(value, "EEEE dd-MM-yyyy", locale='ru_RU')
+
+
 app.jinja_env.filters['format_date'] = format_date
 
 
@@ -74,7 +76,7 @@ class Task(db.Model):
     status = db.Column(db.String(50))
 
     __table_args__ = (
-        db.CheckConstraint('priority >= 1 AND priority <= 10', name='check_priority_range'),
+        db.CheckConstraint('priority >= 1 AND priority <= 3', name='check_priority_range'),
     )
 
 
@@ -96,8 +98,10 @@ class UserSettings(db.Model):
 
 class RegisterForm(FlaskForm):
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "username"})
-    first_name = StringField(validators=[InputRequired(), Length(min=2, max=30)], render_kw={"placeholder": "first_name"})
-    last_name = StringField(validators=[InputRequired(), Length(min=2, max=30)], render_kw={"placeholder": "first_name"})
+    first_name = StringField(validators=[InputRequired(), Length(min=2, max=30)],
+                             render_kw={"placeholder": "first_name"})
+    last_name = StringField(validators=[InputRequired(), Length(min=2, max=30)],
+                            render_kw={"placeholder": "first_name"})
     email = StringField(validators=[InputRequired(), Length(min=6, max=30)], render_kw={"placeholder": "mail"})
     password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "password"})
     submit = SubmitField("Register")
@@ -121,12 +125,10 @@ class ImportForm(FlaskForm):
     ])
 
 
-
 @app.route('/reset_bd')
 @login_required
 def reset():
     return reset_bd(db, User, Task, Event, UserSettings)
-
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -278,6 +280,7 @@ def profile():
     user = current_user
     return render_template('profile.html', user=user)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -297,10 +300,7 @@ def login():
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
-
-
     # TODO Здесь будет логика для обработки восстановления пароля
-
 
     return render_template('forgot_password.html')
 
@@ -450,7 +450,9 @@ def search():
     tasks = Task.query.filter(Task.user_id == user_id, Task.title.ilike(f'%{query}%')).all()
     events = Event.query.filter(Event.user_id == user_id, Event.title.ilike(f'%{query}%')).all()
 
-    tasks_data = [{'task_id': task.task_id, 'title': task.title, 'due_date': task.due_date, 'description': task.description} for task in tasks]
+    tasks_data = [
+        {'task_id': task.task_id, 'title': task.title, 'due_date': task.due_date, 'description': task.description} for
+        task in tasks]
     print(tasks_data)
     events_data = [{'event_id': event.event_id, 'title': event.title} for event in events]
     print(events_data)
@@ -482,8 +484,11 @@ def search_by_date():
     tasks = Task.query.filter(Task.user_id == user_id, Task.due_date.between(start_date, end_date)).all()
     events = Event.query.filter(Event.user_id == user_id, Event.event_date.between(start_date, end_date)).all()
     print(tasks, events)
-    tasks_data = [{'task_id': task.task_id, 'title': task.title, 'due_date': task.due_date.strftime('%m-%d-%Y'), 'description': task.description} for task in tasks]
-    events_data = [{'event_id': event.event_id, 'title': event.title, 'event_date': event.event_date.strftime('%d-%m-%Y')} for event in events]
+    tasks_data = [{'task_id': task.task_id, 'title': task.title, 'due_date': task.due_date.strftime('%m-%d-%Y'),
+                   'description': task.description} for task in tasks]
+    events_data = [
+        {'event_id': event.event_id, 'title': event.title, 'event_date': event.event_date.strftime('%d-%m-%Y')} for
+        event in events]
 
     return jsonify({'tasks': tasks_data, 'events': events_data})
 
